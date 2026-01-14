@@ -1,10 +1,9 @@
 use sqlx::postgres::{PgPool, PgPoolOptions};
 
-pub async fn create_pool() -> Result<PgPool, sqlx::Error> {
-    let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env variable not found");
+pub async fn create_pool(db_config: &shared::config::Database) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&db_url)
+        .max_connections(db_config.pool_size as u32)
+        .connect(&db_config.url)
         .await
 }
 

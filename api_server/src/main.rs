@@ -1,15 +1,17 @@
-use api_server::error;
+use api_server::{app, db::connection, error, state};
+use shared::config::load_config;
 
 #[tokio::main]
 async fn main() -> Result<(), error::ServerError> {
-    dotenvy::dotenv().ok();
+    let config = load_config().expect("Config Error");
 
-    let app = api_server::build_app().await?;
+    let pool = connection::create_pool(&config.database).await?;
+    connection::run_migrations(&pool).await?;
 
-    let host = std::env::var("SERVER_HOST").expect("SERVER_HOST env variable not found");
-    let port = std::env::var("SERVER_PORT").expect("SERVER_PORT env variable not found");
+    let state = state::AppState::new(pool);
+    let app = app::create_router(state);
 
-    let bind = format!("{}:{}", host, port);
+    let bind = format!("{}:{}", config.server.host, config.server.port);
     println!("[+] Server running on {bind:?}...");
 
     let listener = tokio::net::TcpListener::bind(bind).await.unwrap();
