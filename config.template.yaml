@@ -1,0 +1,7 @@
+database:
+  url: "postgres://user:password@127.0.0.1:9000/main_db"
+  pool_size: 5
+
+server:
+  host: "127.0.0.1"
+  port: 8000
