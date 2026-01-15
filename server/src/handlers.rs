@@ -10,6 +10,7 @@ use crate::{
     error::ServerError,
     state::AppState,
 };
+use shared::db::models::JobStatus;
 
 #[derive(Debug, Deserialize)]
 pub struct JobPayload {
@@ -30,7 +31,7 @@ pub async fn create_job(
         models::NewJob {
             job_type: req_payload.job_type,
             payload: req_payload.payload,
-            status: models::JobStatus::Pending,
+            status: JobStatus::Pending,
             priority: match req_payload.priority {
                 Some(val) => val,
                 None => 1,

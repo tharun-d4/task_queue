@@ -1,5 +1,5 @@
-use server::{app, db::connection, error, state};
-use shared::config::load_config;
+use server::{app, error, state};
+use shared::{config::load_config, db::connection};
 
 #[tokio::main]
 async fn main() -> Result<(), error::ServerError> {
