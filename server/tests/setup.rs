@@ -11,7 +11,7 @@ pub struct TestFixture {
 
 impl TestFixture {
     pub async fn new() -> Self {
-        let config = load_test_config().expect("Test Config Error");
+        let config = load_test_config("../test_config").expect("Test Config Error");
 
         let pool = connection::create_pool(&config.database).await.unwrap();
         connection::run_migrations(&pool).await.unwrap();

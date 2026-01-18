@@ -3,7 +3,7 @@ use shared::{config::load_config, db::connection};
 
 #[tokio::main]
 async fn main() -> Result<(), error::ServerError> {
-    let config = load_config().expect("Config Error");
+    let config = load_config("./config").expect("Config Error");
 
     let pool = connection::create_pool(&config.database).await?;
     connection::run_migrations(&pool).await?;

@@ -19,9 +19,9 @@ pub struct AppConfig {
     pub server: Server,
 }
 
-pub fn load_config() -> Result<AppConfig, ConfigError> {
+pub fn load_config(path: &str) -> Result<AppConfig, ConfigError> {
     let config = Config::builder()
-        .add_source(File::new("./config", FileFormat::Yaml))
+        .add_source(File::new(path, FileFormat::Yaml))
         .build()?;
 
     let config = config.try_deserialize()?;
@@ -35,9 +35,9 @@ pub struct TestConfig {
     pub database: Database,
 }
 
-pub fn load_test_config() -> Result<TestConfig, ConfigError> {
+pub fn load_test_config(path: &str) -> Result<TestConfig, ConfigError> {
     let config = Config::builder()
-        .add_source(File::new("./test_config", FileFormat::Yaml))
+        .add_source(File::new(path, FileFormat::Yaml))
         .build()?;
 
     let config = config.try_deserialize()?;
