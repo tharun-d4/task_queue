@@ -29,19 +29,3 @@ pub fn load_config(path: &str) -> Result<AppConfig, ConfigError> {
 
     Ok(config)
 }
-
-#[derive(Debug, Deserialize)]
-pub struct TestConfig {
-    pub database: Database,
-}
-
-pub fn load_test_config(path: &str) -> Result<TestConfig, ConfigError> {
-    let config = Config::builder()
-        .add_source(File::new(path, FileFormat::Yaml))
-        .build()?;
-
-    let config = config.try_deserialize()?;
-    dbg!(&config);
-
-    Ok(config)
-}
