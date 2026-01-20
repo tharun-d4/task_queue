@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use sqlx::PgPool;
 
 mod test_server;
@@ -23,5 +24,5 @@ async fn test_create_job(pool: PgPool) {
             "max_retries": 5,
         }))
         .await;
-    response.assert_status_ok();
+    response.assert_status(StatusCode::CREATED);
 }
