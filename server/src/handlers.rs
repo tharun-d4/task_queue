@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State, response::IntoResponse};
+use axum::{Json, extract::State, http::StatusCode};
 use chrono::Utc;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use crate::{error::ServerError, state::AppState};
@@ -19,10 +19,15 @@ pub struct JobPayload {
     max_retries: Option<u8>,
 }
 
+#[derive(Debug, Serialize)]
+pub struct JobId {
+    job_id: uuid::Uuid,
+}
+
 pub async fn create_job(
     State(state): State<Arc<AppState>>,
     Json(req_payload): Json<JobPayload>,
-) -> Result<impl IntoResponse, ServerError> {
+) -> Result<(StatusCode, Json<JobId>), ServerError> {
     let state = state.clone();
 
     let job_id = insert_job(
@@ -43,5 +48,5 @@ pub async fn create_job(
         },
     )
     .await?;
-    Ok(job_id.to_string())
+    Ok((StatusCode::CREATED, Json(JobId { job_id })))
 }
