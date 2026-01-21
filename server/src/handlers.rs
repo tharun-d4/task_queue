@@ -4,6 +4,7 @@ use axum::{Json, extract::State, http::StatusCode};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+use tracing::{info, instrument};
 
 use crate::{error::ServerError, state::AppState};
 use shared::db::{
@@ -24,6 +25,7 @@ pub struct JobId {
     job_id: uuid::Uuid,
 }
 
+#[instrument(skip(state))]
 pub async fn create_job(
     State(state): State<Arc<AppState>>,
     Json(req_payload): Json<JobPayload>,
@@ -48,5 +50,6 @@ pub async fn create_job(
         },
     )
     .await?;
+    info!(%job_id, "Job Created");
     Ok((StatusCode::CREATED, Json(JobId { job_id })))
 }

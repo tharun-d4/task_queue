@@ -14,3 +14,6 @@ sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres", "uuid", "ch
 tokio = { version = "1.49.0", features = ["full"] }
 uuid = { version = "1.19.0", features = ["serde", "v7"] }
 axum-test = "18.6.0"
+tracing = "0.1.44"
+tower-http = { version = "0.6.8", features = ["trace"] }
+tower = "0.5.3"

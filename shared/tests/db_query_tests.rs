@@ -20,6 +20,5 @@ async fn test_insert_job_returns_job_id(pool: PgPool) -> Result<(), sqlx::Error>
         },
     )
     .await?;
-    println!("job_id: {:?}", job_id);
     Ok(())
 }

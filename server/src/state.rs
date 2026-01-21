@@ -1,5 +1,6 @@
 use sqlx::postgres::PgPool;
 
+#[derive(Debug)]
 pub struct AppState {
     pub pool: PgPool,
 }

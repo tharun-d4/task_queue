@@ -22,10 +22,8 @@ pub struct AppConfig {
 pub fn load_config(path: &str) -> Result<AppConfig, ConfigError> {
     let config = Config::builder()
         .add_source(File::new(path, FileFormat::Yaml))
-        .build()?;
-
-    let config = config.try_deserialize()?;
-    dbg!(&config);
+        .build()?
+        .try_deserialize()?;
 
     Ok(config)
 }
