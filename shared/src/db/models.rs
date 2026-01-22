@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use sqlx::types::JsonValue;
+use sqlx::{FromRow, types::JsonValue};
 use uuid::Uuid;
 
 #[derive(Debug, sqlx::Type)]
@@ -11,7 +11,7 @@ pub enum JobStatus {
     Failed,
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromRow)]
 pub struct Job {
     pub id: Uuid,
     pub job_type: String,
