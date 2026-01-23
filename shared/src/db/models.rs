@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
+use serde::Serialize;
 use sqlx::{FromRow, types::JsonValue};
 use uuid::Uuid;
 
-#[derive(Debug, sqlx::Type)]
+#[derive(Debug, sqlx::Type, Serialize)]
 #[sqlx(type_name = "job_status", rename_all = "lowercase")]
 pub enum JobStatus {
     Pending,
@@ -11,7 +12,7 @@ pub enum JobStatus {
     Failed,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize)]
 pub struct Job {
     pub id: Uuid,
     pub job_type: String,
