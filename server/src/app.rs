@@ -10,7 +10,7 @@ use tower_http::trace::{
 };
 use tracing::Level;
 
-use crate::{handlers::create_job, state::AppState};
+use crate::{handlers, state::AppState};
 
 pub fn create_router(state: AppState) -> Router {
     let middleware = ServiceBuilder::new().layer(
@@ -23,7 +23,8 @@ pub fn create_router(state: AppState) -> Router {
 
     Router::new()
         .route("/", get(|| async { "Hello World" }))
-        .route("/jobs", post(create_job))
+        .route("/jobs", post(handlers::create_job))
+        .route("/jobs/{id}", get(handlers::get_job))
         .with_state(Arc::new(state))
         .layer(middleware)
 }
