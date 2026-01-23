@@ -1,5 +1,5 @@
 use chrono::Utc;
-use sqlx::{types::JsonValue, PgPool};
+use sqlx::{PgPool, types::JsonValue};
 
 use shared::db::{
     models::{JobStatus, NewJob},

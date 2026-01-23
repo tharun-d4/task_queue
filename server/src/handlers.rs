@@ -25,9 +25,9 @@ pub struct JobPayload {
     max_retries: Option<i16>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct JobId {
-    job_id: Uuid,
+    pub job_id: Uuid,
 }
 
 #[instrument(skip(state))]
