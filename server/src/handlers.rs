@@ -41,14 +41,8 @@ pub async fn create_job(
             job_type: req_payload.job_type,
             payload: req_payload.payload,
             status: JobStatus::Pending,
-            priority: match req_payload.priority {
-                Some(val) => val,
-                None => 1,
-            },
-            max_retries: match req_payload.max_retries {
-                Some(val) => val,
-                None => 1,
-            },
+            priority: req_payload.priority.unwrap_or(1),
+            max_retries: req_payload.max_retries.unwrap_or(1),
             created_at: Utc::now(),
         },
     )

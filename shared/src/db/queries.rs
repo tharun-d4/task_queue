@@ -15,8 +15,8 @@ pub async fn insert_job(pool: &PgPool, job: NewJob) -> Result<Uuid, sqlx::Error>
     .bind(job.job_type)
     .bind(job.payload)
     .bind(job.status)
-    .bind(job.priority as i16)
-    .bind(job.max_retries as i16)
+    .bind(job.priority)
+    .bind(job.max_retries)
     .bind(job.created_at)
     .fetch_one(pool)
     .await?;
