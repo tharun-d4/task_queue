@@ -4,5 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+shared = { path = "../shared" }
+
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "postgres"] }
 tokio = { version = "1.49.0", features = ["full"] }
+tracing = "0.1.44"
+uuid = { version = "1.19.0", features = ["v7"] }
