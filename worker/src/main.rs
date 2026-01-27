@@ -2,7 +2,7 @@ use tracing::{info, instrument};
 use uuid::Uuid;
 
 use shared::{config::load_config, db::connection, tracing::init_tracing};
-use worker::db::queries::register;
+use worker::db::queries;
 
 async fn sleep(ms: u64) {
     tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
@@ -18,7 +18,9 @@ async fn main() {
     let worker_id = Uuid::now_v7();
     let pid = std::process::id();
 
-    register(&pool, worker_id, pid as i32).await.unwrap();
+    queries::register(&pool, worker_id, pid as i32)
+        .await
+        .unwrap();
     info!(
         "[+] Worker (ID: {:?}, PID: {}) has started running & registered itself",
         worker_id, pid
