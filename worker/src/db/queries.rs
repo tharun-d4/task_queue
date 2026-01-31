@@ -92,3 +92,18 @@ pub async fn store_job_error(
 
     Ok(())
 }
+
+pub async fn mark_job_as_failed(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx::Error> {
+    query(
+        "UPDATE jobs
+        SET
+            status = $1
+        WHERE id = $2;",
+    )
+    .bind(JobStatus::Failed)
+    .bind(job_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
