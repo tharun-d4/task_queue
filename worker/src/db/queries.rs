@@ -1,5 +1,5 @@
 use chrono::Utc;
-use sqlx::{postgres::PgPool, query, query_as};
+use sqlx::{postgres::PgPool, query, query_as, types::JsonValue};
 use uuid::Uuid;
 
 use shared::db::models::{Job, JobStatus};
@@ -47,4 +47,27 @@ pub async fn claim_job(pool: &PgPool, worker_id: Uuid) -> Result<Job, sqlx::Erro
     .bind(JobStatus::Pending)
     .fetch_one(pool)
     .await
+}
+
+pub async fn mark_job_as_completed(
+    pool: &PgPool,
+    job_id: Uuid,
+    result: Option<JsonValue>,
+) -> Result<(), sqlx::Error> {
+    query(
+        "UPDATE jobs
+        SET
+            status = $1,
+            completed_at = $2,
+            result = $3
+        WHERE id = $4;",
+    )
+    .bind(JobStatus::Completed)
+    .bind(Utc::now())
+    .bind(result)
+    .bind(job_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }
