@@ -28,8 +28,16 @@ async fn main() {
 
     loop {
         let job = queries::claim_job(&pool, worker_id).await.unwrap();
+        let job_id = job.id.clone();
 
-        executor::execute_job(job).await;
+        match executor::execute_job(job).await {
+            Ok(result) => {
+                queries::mark_job_as_completed(&pool, job_id, result)
+                    .await
+                    .unwrap();
+            }
+            Err(_) => {}
+        }
         sleep(10000).await;
     }
 }
