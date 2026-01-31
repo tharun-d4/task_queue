@@ -71,3 +71,24 @@ pub async fn mark_job_as_completed(
 
     Ok(())
 }
+
+pub async fn store_job_error(
+    pool: &PgPool,
+    job_id: Uuid,
+    error: String,
+) -> Result<(), sqlx::Error> {
+    query(
+        "UPDATE jobs
+        SET
+            status = $1,
+            error_message = $2
+        WHERE id = $3;",
+    )
+    .bind(JobStatus::Pending)
+    .bind(error)
+    .bind(job_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
