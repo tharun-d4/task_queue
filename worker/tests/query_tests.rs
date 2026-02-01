@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPool;
 use uuid::Uuid;
 
-use shared::db::models::JobStatus;
+use shared::db::{models::JobStatus, queries::get_job_by_id};
 use worker::db::queries;
 
 #[sqlx::test(migrations = "../migrations")]
@@ -24,4 +24,20 @@ async fn claim_job_returns_job(pool: PgPool) {
 
     assert_eq!(job.status, JobStatus::Running);
     assert_eq!(job.worker_id, Some(worker_id));
+}
+
+#[sqlx::test(
+    migrations = "../migrations",
+    fixtures(path = "../../test_fixtures", scripts("jobs", "workers"))
+)]
+async fn mark_job_as_completed(pool: PgPool) {
+    let job_id = Uuid::parse_str("019bfadc-28bb-781d-9d22-acf23fe50117").unwrap();
+
+    queries::mark_job_as_completed(&pool, job_id, None)
+        .await
+        .unwrap();
+
+    let job = get_job_by_id(&pool, job_id).await.unwrap();
+    assert_eq!(job.id, job_id);
+    assert_eq!(job.status, JobStatus::Completed);
 }
