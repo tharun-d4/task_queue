@@ -41,3 +41,17 @@ async fn mark_job_as_completed(pool: PgPool) {
     assert_eq!(job.id, job_id);
     assert_eq!(job.status, JobStatus::Completed);
 }
+
+#[sqlx::test(
+    migrations = "../migrations",
+    fixtures(path = "../../test_fixtures", scripts("jobs", "workers"))
+)]
+async fn mark_job_as_failed(pool: PgPool) {
+    let job_id = Uuid::parse_str("019bfdd5-cc70-7f37-a02a-1ec5849f25df").unwrap();
+
+    queries::mark_job_as_failed(&pool, job_id).await.unwrap();
+
+    let job = get_job_by_id(&pool, job_id).await.unwrap();
+    assert_eq!(job.id, job_id);
+    assert_eq!(job.status, JobStatus::Failed);
+}
