@@ -2,7 +2,7 @@ use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use shared::{config::load_config, db::connection, tracing::init_tracing};
-use worker::{db::queries, executor};
+use worker::{db::queries, executor, heartbeat};
 
 async fn sleep(ms: u64) {
     tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
@@ -25,6 +25,8 @@ async fn main() {
         "[+] Worker (ID: {:?}, PID: {}) has started running & registered itself",
         worker_id, pid
     );
+
+    heartbeat::start_heartbeat_task(pool.clone(), worker_id).await;
 
     loop {
         let claim_result = queries::claim_job(&pool, worker_id).await;
