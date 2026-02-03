@@ -9,7 +9,16 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: app_db
+  mail:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:8025:8025 # Web UI
+      - 127.0.0.1:1025:1025 # SMTP Server
+    volumes:
+      - mail_data:/data
 
 volumes:
   pg_data:
+  mail_data:
 
