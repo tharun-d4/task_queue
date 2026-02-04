@@ -8,3 +8,7 @@ server:
 
 worker:
   heartbeat: 30
+
+mail_server:
+  host: "127.0.0.1"
+  port: 1025

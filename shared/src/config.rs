@@ -19,10 +19,17 @@ pub struct Worker {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct MailServer {
+    pub host: String,
+    pub port: u16,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct AppConfig {
     pub database: Database,
     pub server: Server,
     pub worker: Worker,
+    pub mail_server: MailServer,
 }
 
 pub fn load_config(path: &str) -> Result<AppConfig, ConfigError> {
