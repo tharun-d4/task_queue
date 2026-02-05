@@ -20,8 +20,7 @@ pub async fn send_email(
         .to(info.to.parse()?)
         .subject(&info.subject)
         .header(ContentType::TEXT_PLAIN)
-        .body(info.body)
-        .unwrap();
+        .body(info.body)?;
 
     sender.send(message).await?;
 

@@ -1,4 +1,4 @@
-use lettre::{Tokio1Executor, transport::smtp::AsyncSmtpTransport};
+use lettre::{transport::smtp::AsyncSmtpTransport, Tokio1Executor};
 use sqlx::{postgres::PgPool, types::JsonValue};
 use tracing::{error, info, instrument};
 
@@ -24,7 +24,7 @@ pub async fn execute_job(
     let result = match job.job_type.as_ref() {
         "send_email" => send_email(smtp_sender, job).await,
         "send_webhook" => send_webhook(client, job.payload).await,
-        _ => Err("Unknown Job Type Found".to_string()),
+        _ => Err(WorkerError::InvalidJob),
     };
 
     match result {
@@ -34,7 +34,7 @@ pub async fn execute_job(
         }
         Err(err) => {
             error!("Got error: {:?}", err);
-            queries::store_job_error(pool, job_id, err).await?;
+            queries::store_job_error(pool, job_id, err.to_string()).await?;
             if retry_limit_reached {
                 info!("Marking job as failed as the retry limit reached",);
                 queries::mark_job_as_failed(pool, job_id).await?;
@@ -48,9 +48,8 @@ pub async fn execute_job(
 async fn send_email(
     smtp_sender: AsyncSmtpTransport<Tokio1Executor>,
     job: Job,
-) -> Result<Option<JsonValue>, String> {
-    let email_info: EmailInfo = serde_json::from_value(job.payload)
-        .map_err(|e| format!("Invalid json job payload: {:?}", e))?;
+) -> Result<Option<JsonValue>, WorkerError> {
+    let email_info: EmailInfo = serde_json::from_value(job.payload).unwrap();
     info!("Sending an email: {:?}", email_info);
     email::send_email(smtp_sender, email_info).await?;
     Ok(None)
