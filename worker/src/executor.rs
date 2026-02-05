@@ -49,7 +49,9 @@ async fn send_email(
     smtp_sender: AsyncSmtpTransport<Tokio1Executor>,
     job: Job,
 ) -> Result<Option<JsonValue>, WorkerError> {
-    let email_info: EmailInfo = serde_json::from_value(job.payload).unwrap();
+    let email_info: EmailInfo = serde_json::from_value(job.payload)
+        .map_err(|e| WorkerError::Email(format!("email payload json error: {:?}", e)))?;
+
     info!("Sending an email: {:?}", email_info);
     email::send_email(smtp_sender, email_info).await?;
     Ok(None)
