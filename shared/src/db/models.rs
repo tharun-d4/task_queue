@@ -9,7 +9,6 @@ pub enum JobStatus {
     Pending,
     Running,
     Completed,
-    Failed,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]

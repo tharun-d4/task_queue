@@ -93,15 +93,44 @@ pub async fn store_job_error(
     Ok(())
 }
 
-pub async fn mark_job_as_failed(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx::Error> {
+pub async fn move_to_failed_jobs(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx::Error> {
+    let job = query_as::<_, Job>("SELECT * FROM jobs WHERE id=$1")
+        .bind(job_id)
+        .fetch_one(pool)
+        .await?;
+
     query(
-        "UPDATE jobs
-        SET
-            status = $1
-        WHERE id = $2;",
+        "INSERT INTO failed_jobs
+        (
+            id,
+            job_type,
+            payload,
+            priority,
+            max_retries,
+            created_at,
+            started_at,
+            failed_at,
+            worker_id,
+            attempts,
+            error_message,
+            result
+        )
+        VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+        ",
     )
-    .bind(JobStatus::Failed)
-    .bind(job_id)
+    .bind(job.id)
+    .bind(job.job_type)
+    .bind(job.payload)
+    .bind(job.priority)
+    .bind(job.max_retries)
+    .bind(job.created_at)
+    .bind(job.started_at)
+    .bind(Utc::now())
+    .bind(job.worker_id)
+    .bind(job.attempts)
+    .bind(job.error_message)
+    .bind(job.result)
     .execute(pool)
     .await?;
 

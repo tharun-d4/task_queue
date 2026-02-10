@@ -37,7 +37,7 @@ pub async fn execute_job(
             queries::store_job_error(pool, job_id, err.to_string()).await?;
             if retry_limit_reached {
                 info!("Marking job as failed as the retry limit reached",);
-                queries::mark_job_as_failed(pool, job_id).await?;
+                queries::move_to_failed_jobs(pool, job_id).await?;
             }
         }
     }
