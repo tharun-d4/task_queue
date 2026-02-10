@@ -1,3 +1,2 @@
-
 ALTER TABLE jobs
 ALTER COLUMN attempts SET DEFAULT 0;

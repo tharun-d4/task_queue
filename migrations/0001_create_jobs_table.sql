@@ -1,6 +1,4 @@
--- Add migration script here
-
-CREATE TYPE job_status AS ENUM ('pending', 'running', 'completed', 'failed');
+CREATE TYPE job_status AS ENUM ('pending', 'running', 'completed');
 
 CREATE TABLE jobs (
   id UUID PRIMARY KEY,

@@ -1,4 +1,3 @@
-
 CREATE TABLE workers (
   id UUID PRIMARY KEY,
   pid INT NOT NULL,
