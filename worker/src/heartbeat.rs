@@ -9,11 +9,8 @@ pub async fn start_heartbeat_task(
     worker_id: Uuid,
     pool: PgPool,
 ) -> tokio::task::JoinHandle<()> {
-    let mut interval = tokio::time::interval(std::time::Duration::from_secs(heartbeat));
-
-    interval.tick().await;
-
     tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(heartbeat));
         loop {
             interval.tick().await;
 
