@@ -16,6 +16,7 @@ pub struct Server {
 #[derive(Debug, Deserialize)]
 pub struct Worker {
     pub heartbeat: u8,
+    pub lease_duration: u8,
 }
 
 #[derive(Debug, Deserialize)]

@@ -7,7 +7,8 @@ server:
   port: 8000
 
 worker:
-  heartbeat: 30
+  heartbeat: 10
+  lease_duration: 15
 
 mail_server:
   host: "127.0.0.1"
