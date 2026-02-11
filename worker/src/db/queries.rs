@@ -115,6 +115,7 @@ pub async fn move_to_failed_jobs(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx
             max_retries,
             created_at,
             started_at,
+            lease_expires_at,
             failed_at,
             worker_id,
             attempts,
@@ -122,7 +123,7 @@ pub async fn move_to_failed_jobs(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx
             result
         )
         VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
         ",
     )
     .bind(job.id)
@@ -132,6 +133,7 @@ pub async fn move_to_failed_jobs(pool: &PgPool, job_id: Uuid) -> Result<(), sqlx
     .bind(job.max_retries)
     .bind(job.created_at)
     .bind(job.started_at)
+    .bind(job.lease_expires_at)
     .bind(Utc::now())
     .bind(job.worker_id)
     .bind(job.attempts)
