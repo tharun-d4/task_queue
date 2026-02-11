@@ -6,6 +6,7 @@ server:
   host: "127.0.0.1"
   port: 8000
   lease_recovery: 5
+  cleanup: 30
 
 worker:
   heartbeat: 10
