@@ -26,7 +26,7 @@ async fn main() -> Result<(), WorkerError> {
     let client = reqwest::Client::new();
 
     loop {
-        let claim_result = queries::claim_job(&pool, worker_id).await;
+        let claim_result = queries::claim_job(&pool, worker_id, config.worker.lease_duration).await;
         match claim_result {
             Ok(job) => {
                 executor::execute_job(&pool, job, smtp_sender.clone(), client.clone()).await?;
