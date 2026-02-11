@@ -5,6 +5,7 @@ database:
 server:
   host: "127.0.0.1"
   port: 8000
+  lease_recovery: 5
 
 worker:
   heartbeat: 10

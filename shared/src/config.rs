@@ -11,6 +11,7 @@ pub struct Database {
 pub struct Server {
     pub host: String,
     pub port: u16,
+    pub lease_recovery: u8,
 }
 
 #[derive(Debug, Deserialize)]
