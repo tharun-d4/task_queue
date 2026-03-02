@@ -22,7 +22,6 @@ pub struct Job {
     pub created_at: DateTime<Utc>,
     pub run_at: DateTime<Utc>,
     pub started_at: Option<DateTime<Utc>>,
-    pub completed_at: Option<DateTime<Utc>>,
     pub lease_expires_at: Option<DateTime<Utc>>,
     pub worker_id: Option<Uuid>,
     pub attempts: i16,
