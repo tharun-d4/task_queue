@@ -28,9 +28,9 @@ graph TD
 - **💀 Dead Letter Queue:** Persistent store for retry-exhausted jobs
 - **🚪 Graceful Worker Shutdown:** Workers stop accepting new jobs and if in mid-execution, complete the current job until it reaches a terminal status (completed/failed) before shutting down
 - **🧠 Worker Process Supervision:** A separate supervisor process spawns workers based on configuration, continuously monitors their exit status, and automatically respawns them if they crash.
+- 🗓️ Scheduled jobs (One-time)
 
 ### Planned Enhancements
-- 🗓️ Scheduled jobs (One-time)
 - 🔁 Periodic / Recurring jobs
 - 📊 API to query job status & statistics
 - 🖥️ Dashboard for real-time visualization
