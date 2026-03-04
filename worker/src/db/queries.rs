@@ -2,19 +2,25 @@ use chrono::{TimeDelta, Utc};
 use sqlx::{postgres::PgPool, query, query_as, types::JsonValue};
 use uuid::Uuid;
 
+use crate::error::WorkerErrorV2;
 use shared::db::models::{Job, JobStatus};
 
-pub async fn register(pool: &PgPool, worker_id: Uuid, pid: i32) -> Result<u64, sqlx::Error> {
-    let inserted_rows =
-        query("INSERT INTO workers (id, pid, started_at, last_heartbeat) VALUES ($1, $2, $3, $3);")
-            .bind(worker_id)
-            .bind(pid)
-            .bind(Utc::now())
-            .execute(pool)
-            .await?
-            .rows_affected();
+pub async fn register(pool: &PgPool, worker_id: Uuid, pid: i32) -> Result<(), WorkerErrorV2> {
+    query(
+        "
+        INSERT INTO workers
+        (id, pid, started_at, last_heartbeat)
+        VALUES ($1, $2, $3, $3);
+        ",
+    )
+    .bind(worker_id)
+    .bind(pid)
+    .bind(Utc::now())
+    .execute(pool)
+    .await
+    .map_err(|e| WorkerErrorV2::temporary("Failed to register worker", e))?;
 
-    Ok(inserted_rows)
+    Ok(())
 }
 
 pub async fn update_heartbeat(pool: &PgPool, worker_id: Uuid) -> Result<u64, sqlx::Error> {
@@ -228,16 +234,18 @@ pub async fn store_job_error(
 pub async fn update_worker_shutdown_time(
     pool: &PgPool,
     worker_id: Uuid,
-) -> Result<u64, sqlx::Error> {
-    let updated_rows = query(
-        "UPDATE workers
+) -> Result<(), WorkerErrorV2> {
+    query(
+        "
+        UPDATE workers
         SET shutdown_at = NOW()
-        WHERE id = $1;",
+        WHERE id = $1;
+        ",
     )
     .bind(worker_id)
     .execute(pool)
-    .await?
-    .rows_affected();
+    .await
+    .map_err(|e| WorkerErrorV2::temporary("Failed to update worker shutdown time", e))?;
 
-    Ok(updated_rows)
+    Ok(())
 }

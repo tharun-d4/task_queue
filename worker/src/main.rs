@@ -3,16 +3,16 @@ use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use shared::{config::load_worker_config, db::connection, tracing::init_tracing};
-use worker::{db::queries, error::WorkerError, executor, handlers::email, heartbeat};
+use worker::{db::queries, error::WorkerErrorV2, executor, handlers::email, heartbeat};
 
 #[instrument]
 #[tokio::main]
-async fn main() -> Result<(), WorkerError> {
+async fn main() -> Result<(), WorkerErrorV2> {
     let _trace_guard = init_tracing("worker");
     let config = load_worker_config("./config").expect("Config Error");
 
-    let pool = connection::create_pool(&config.database).await?;
-    connection::run_migrations(&pool).await?;
+    let pool = connection::create_pool(&config.database).await.unwrap();
+    connection::run_migrations(&pool).await.unwrap();
 
     let worker_id = Uuid::now_v7();
     let pid = std::process::id();
@@ -44,7 +44,7 @@ async fn main() -> Result<(), WorkerError> {
             claim_result = queries::claim_job(&pool, worker_id, config.worker.lease_duration) => {
                 match claim_result {
                     Ok(Some(job)) => {
-                        executor::execute_job(&pool, job, worker_id, smtp_sender.clone(), client.clone()).await?;
+                        executor::execute_job(&pool, job, worker_id, smtp_sender.clone(), client.clone()).await.unwrap();
                     }
                     Ok(None) => {
                         // No job to run
