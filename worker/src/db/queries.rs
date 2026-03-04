@@ -18,7 +18,7 @@ pub async fn register(pool: &PgPool, worker_id: Uuid, pid: i32) -> Result<(), Wo
     .bind(Utc::now())
     .execute(pool)
     .await
-    .map_err(|e| WorkerErrorV2::temporary("Failed to register worker", e))?;
+    .map_err(|e| WorkerErrorV2::temporary("Failed to register worker").set_source(e))?;
 
     Ok(())
 }
@@ -245,7 +245,7 @@ pub async fn update_worker_shutdown_time(
     .bind(worker_id)
     .execute(pool)
     .await
-    .map_err(|e| WorkerErrorV2::temporary("Failed to update worker shutdown time", e))?;
+    .map_err(|e| WorkerErrorV2::temporary("Failed to update worker shutdown time").set_source(e))?;
 
     Ok(())
 }

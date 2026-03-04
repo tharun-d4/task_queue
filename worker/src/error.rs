@@ -29,19 +29,23 @@ impl fmt::Display for WorkerErrorV2 {
 impl core::error::Error for WorkerErrorV2 {}
 
 impl WorkerErrorV2 {
-    pub fn permanent(message: &str, source: impl Into<anyhow::Error>) -> Self {
+    pub fn permanent(message: &str) -> Self {
         Self {
             status: ErrorStatus::Permanent,
             message: message.to_string(),
-            source: Some(source.into()),
+            source: None,
         }
     }
-    pub fn temporary(message: &str, source: impl Into<anyhow::Error>) -> Self {
+    pub fn temporary(message: &str) -> Self {
         Self {
             status: ErrorStatus::Temporary,
             message: message.to_string(),
-            source: Some(source.into()),
+            source: None,
         }
+    }
+    pub fn set_source(mut self, source: impl Into<anyhow::Error>) -> Self {
+        self.source = Some(source.into());
+        self
     }
 }
 
