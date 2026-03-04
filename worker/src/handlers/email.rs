@@ -17,13 +17,13 @@ pub async fn send_email(
     sender: AsyncSmtpTransport<Tokio1Executor>,
     payload: JsonValue,
 ) -> Result<Option<JsonValue>, WorkerError> {
-    let info: EmailInfo = serde_json::from_value(payload).map_err(|e| {
-        WorkerError::permanent("Deserialization error of email info").set_source(e)
-    })?;
+    let info: EmailInfo = serde_json::from_value(payload)
+        .map_err(|e| WorkerError::permanent("Deserialization error of email info").set_source(e))?;
 
-    let from = info.from.parse().map_err(|e| {
-        WorkerError::permanent("Failed to deserialize 'from' email").set_source(e)
-    })?;
+    let from = info
+        .from
+        .parse()
+        .map_err(|e| WorkerError::permanent("Failed to deserialize 'from' email").set_source(e))?;
 
     let to = info
         .to

@@ -167,9 +167,7 @@ pub async fn move_job_record_to_completed(
     .bind(result)
     .execute(pool)
     .await
-    .map_err(|e| {
-        WorkerError::temporary("Unable to move the job to completed table").set_source(e)
-    })?
+    .map_err(|e| WorkerError::temporary("Unable to move the job to completed table").set_source(e))?
     .rows_affected();
 
     Ok(rows_affected)
