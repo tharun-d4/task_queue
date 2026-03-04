@@ -7,7 +7,7 @@ use reqwest::Error as ReqwestError;
 use sqlx::Error as SqlxError;
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorStatus {
     Temporary,
     Permanent,
@@ -46,6 +46,10 @@ impl WorkerErrorV2 {
     pub fn set_source(mut self, source: impl Into<anyhow::Error>) -> Self {
         self.source = Some(source.into());
         self
+    }
+
+    pub fn is_retryable(&self) -> bool {
+        self.status == ErrorStatus::Temporary
     }
 }
 

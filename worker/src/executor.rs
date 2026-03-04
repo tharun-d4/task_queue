@@ -65,7 +65,8 @@ pub async fn execute_job(
                     "Failed to update job error and retry time"
                 );
             }
-            if retries_exhausted {
+
+            if !err.is_retryable() || retries_exhausted {
                 let moved_rows =
                     queries::move_job_record_to_failed(pool, job_id, worker_id).await?;
                 if moved_rows == 1 {
