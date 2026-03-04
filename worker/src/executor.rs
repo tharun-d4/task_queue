@@ -1,5 +1,5 @@
 use lettre::{Tokio1Executor, transport::smtp::AsyncSmtpTransport};
-use sqlx::{postgres::PgPool, types::JsonValue};
+use sqlx::postgres::PgPool;
 use tracing::{error, info, instrument};
 use uuid::Uuid;
 
@@ -8,7 +8,7 @@ use shared::db::models::Job;
 use crate::{
     db::queries,
     error::WorkerErrorV2,
-    handlers::{email, models::EmailInfo, webhook::send_webhook},
+    handlers::{email::send_email, webhook::send_webhook},
 };
 
 #[instrument(skip(pool, smtp_sender))]
@@ -26,7 +26,7 @@ pub async fn execute_job(
     let backoff_secs = retry_backoff_secs(job.attempts);
 
     let result = match job.job_type.as_ref() {
-        "send_email" => send_email(smtp_sender, job).await,
+        "send_email" => send_email(smtp_sender, job.payload).await,
         "send_webhook" => send_webhook(client, job.payload).await,
         "will_crash" => {
             error!("Worker will crash when running this job");
@@ -43,28 +43,23 @@ pub async fn execute_job(
 
     match result {
         Ok(res) => {
-            let updated_rows =
+            info!("Job completed");
+            let moved_jobs =
                 queries::move_job_record_to_completed(pool, job_id, worker_id, res).await?;
-            if updated_rows == 1 {
-                info!("Job marked as completed");
-            } else {
-                error!(
-                    updated_rows = updated_rows,
-                    "Failed to mark job as completed"
-                );
+            if moved_jobs != 1 {
+                error!(moved_jobs = moved_jobs, "Failed to mark job as completed");
             }
         }
         Err(err) => {
             error!(
                 error = ?err,
-                retry_backoff_time_in_secs = backoff_secs
+                retry_backoff_time_in_secs = backoff_secs,
+                "Failed to execute job"
             );
             let updated_rows =
                 queries::store_job_error(pool, job_id, worker_id, err.to_string(), backoff_secs)
                     .await?;
-            if updated_rows == 1 {
-                info!("Updated job error and retry backoff time");
-            } else {
+            if updated_rows != 1 {
                 error!(
                     updated_rows = updated_rows,
                     "Failed to update job error and retry time"
@@ -83,19 +78,6 @@ pub async fn execute_job(
     }
 
     Ok(())
-}
-
-async fn send_email(
-    smtp_sender: AsyncSmtpTransport<Tokio1Executor>,
-    job: Job,
-) -> Result<Option<JsonValue>, WorkerErrorV2> {
-    let email_info: EmailInfo = serde_json::from_value(job.payload).map_err(|e| {
-        WorkerErrorV2::permanent("Deserialization error of email info").set_source(e)
-    })?;
-
-    info!("Sending an email: {:?}", email_info);
-    email::send_email(smtp_sender, email_info).await?;
-    Ok(None)
 }
 
 fn retry_backoff_secs(attempts: i16) -> i16 {

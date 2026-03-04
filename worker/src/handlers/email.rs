@@ -2,6 +2,8 @@ use lettre::{
     AsyncTransport, Message, Tokio1Executor, message::header::ContentType,
     transport::smtp::AsyncSmtpTransport,
 };
+use sqlx::types::JsonValue;
+use tracing::info;
 
 use crate::{error::WorkerErrorV2, handlers::models::EmailInfo};
 
@@ -13,8 +15,12 @@ pub fn smtp_sender(server: &str, port: u16) -> AsyncSmtpTransport<Tokio1Executor
 
 pub async fn send_email(
     sender: AsyncSmtpTransport<Tokio1Executor>,
-    info: EmailInfo,
-) -> Result<(), WorkerErrorV2> {
+    payload: JsonValue,
+) -> Result<Option<JsonValue>, WorkerErrorV2> {
+    let info: EmailInfo = serde_json::from_value(payload).map_err(|e| {
+        WorkerErrorV2::permanent("Deserialization error of email info").set_source(e)
+    })?;
+
     let from = info.from.parse().map_err(|e| {
         WorkerErrorV2::permanent("Failed to deserialize 'from' email").set_source(e)
     })?;
@@ -32,10 +38,11 @@ pub async fn send_email(
         .body(info.body)
         .map_err(|e| WorkerErrorV2::permanent("Failed to build email message").set_source(e))?;
 
+    info!("Sending an email");
     sender
         .send(message)
         .await
         .map_err(|e| WorkerErrorV2::temporary("Failed to send email").set_source(e))?;
 
-    Ok(())
+    Ok(None)
 }
