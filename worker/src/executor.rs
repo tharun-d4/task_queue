@@ -21,6 +21,8 @@ pub async fn execute_job(
 ) -> Result<(), WorkerError> {
     let job_id = job.id;
 
+    let retries_exhausted = job.attempts == job.max_retries;
+
     let backoff_secs = retry_backoff_secs(job.attempts);
 
     let result = match job.job_type.as_ref() {
@@ -67,6 +69,15 @@ pub async fn execute_job(
                     updated_rows = updated_rows,
                     "Failed to update job error and retry time"
                 );
+            }
+            if retries_exhausted {
+                let moved_rows =
+                    queries::move_job_record_to_failed(pool, job_id, worker_id).await?;
+                if moved_rows == 1 {
+                    info!("Moved the job to failed jobs");
+                } else {
+                    error!(moved_rows = moved_rows, "Failed to move job");
+                }
             }
         }
     }

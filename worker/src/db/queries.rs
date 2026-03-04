@@ -158,6 +158,45 @@ pub async fn move_job_record_to_completed(
     Ok(rows_affected)
 }
 
+pub async fn move_job_record_to_failed(
+    pool: &PgPool,
+    job_id: Uuid,
+    worker_id: Uuid,
+) -> Result<u64, sqlx::Error> {
+    let moved_rows = query(
+        "
+        WITH deleted_job AS (
+            DELETE FROM jobs
+            WHERE id = $1
+                AND worker_id = $2
+            RETURNING
+                id,
+                job_type,
+                payload,
+                priority,
+                max_retries,
+                created_at,
+                started_at,
+                NOW(),
+                worker_id,
+                attempts,
+                error_message,
+                result,
+                lease_expires_at
+        )
+        INSERT INTO failed_jobs
+        SELECT * FROM deleted_job;
+        ",
+    )
+    .bind(job_id)
+    .bind(worker_id)
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(moved_rows)
+}
+
 pub async fn store_job_error(
     pool: &PgPool,
     job_id: Uuid,
