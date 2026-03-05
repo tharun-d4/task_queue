@@ -5,10 +5,10 @@ A distributed job scheduler written in Rust for reliable background job processi
 ## 1. Requirements
 #### Functional Requirements
 - **Job Submission:** Allow clients to submit new jobs.
-- **Job Claiming & Processing (asynchronously):** Workers must be able to claim the next available job and prevent other workers from processing the same job.
+- **Job Claiming & Processing:** Workers must be able to claim the next available job and prevent other workers from processing the same job.
 - **Priority-based job execution:** High priority jobs must run first.
 - **Schedule jobs:** Allow clients to schedule jobs to run once or periodically (recurring/periodic jobs).
-- **Error and Retry Mechanism:** Handle failures gracefully, retry jobs that failed due to temporary errors and move permanently failed or retry-exhausted jobs to failed jobs (dead letter queue).
+- **Error and Retry Mechanism:** Handle failures gracefully, retry the jobs which failed due to temporary errors and mark permanently failed or retry-exhausted jobs as failed jobs (dead letter queue).
 - **Data Persistence:** Job information must be stored persistently to survive system restarts.
 
 #### Non-Functional Requirements
@@ -19,14 +19,10 @@ A distributed job scheduler written in Rust for reliable background job processi
 - **Observability:** Log all job activities to faciliate monitoring and troubleshooting.
 
 ## 2. Core Entities
-The system is modeled around a few primary database tables.
+The system is modeled around these primary database tables.
 
-- **Job:** Hot queue storing non-terminal jobs (pending, running)
-- **Completed Jobs:** Archive table for successfully finished jobs
-- **Failed Jobs:** Dead letter queue for permanently failed or retry-exhausted jobs
+- **Job:** Hot queue storing non-terminal jobs (pending, running, completed, failed)
 - **Workers:** Tracks active worker processes and heartbeats
-
-This separation keeps the active queue small and performant, while preserving historical data.
 
 ## 3. API Design
 The server exposes REST APIs for job submission and interaction.
@@ -59,11 +55,10 @@ graph TD
 - **🔼 Priority Scheduling:** High priority jobs are preferred
 - **🔁 Retries & Backoff:** Exponential backoff for retrying jobs
 - **🔐 Job Leasing:** Jobs are leased so stalled jobs can be reclaimed
-- **🧹 Cleanup Task:** Moves failed jobs out of the primary queue
-- **💀 Dead Letter Queue:** Persistent store for retry-exhausted jobs
-- **🚪 Graceful Worker Shutdown:** Workers stop accepting new jobs and if in mid-execution, complete the current job until it reaches a terminal status (completed/failed) before shutting down
+- **🧹 Cleanup Task:** Jobs that made the worker crash are marked as failed via a background cleanup task. 
+- **💀 Dead Letter Queue:** Jobs whose status is failed.
+- **🚪 Graceful Worker Shutdown:** Workers stop accepting new jobs and if in mid-execution, complete the current job until it reaches a terminal status (completed/failed) before shutting down.
 - **🧠 Worker Process Supervision:** A separate supervisor process spawns workers based on configuration, continuously monitors their exit status, and automatically respawns them if they crash.
-- **🗂️ Strict Job State Separation:** Non-terminal jobs (pending, running) reside in the hot jobs table, successfully completed jobs are atomically moved to completed_jobs, and retry-exhausted jobs are moved to failed_jobs.
 - **🗓️ Scheduled jobs (One-time)**
 
 ### Planned Enhancements
