@@ -14,7 +14,8 @@ use shared::{config::load_worker_config, db::connection, tracing::init_tracing};
 #[instrument]
 pub async fn init() -> Result<(), WorkerError> {
     let _trace_guard = init_tracing("worker");
-    let config = load_worker_config("./config").expect("Config Error");
+    let config = load_worker_config("./config")
+        .map_err(|e| WorkerError::permanent("Failed to load worker config").set_source(e))?;
 
     let pool = connection::create_pool(&config.database)
         .await

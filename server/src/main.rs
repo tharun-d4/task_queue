@@ -1,6 +1,6 @@
 use tracing::{info, instrument};
 
-use server::{app, cleanup, error, lease_recovery, state};
+use server::{app, background, error, state};
 use shared::{config::load_server_config, db::connection, tracing::init_tracing};
 
 /// Server entrypoint.
@@ -24,8 +24,8 @@ async fn main() -> Result<(), error::ServerError> {
     let pool = connection::create_pool(&config.database).await?;
     connection::run_migrations(&pool).await?;
 
-    lease_recovery::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
-    cleanup::cleanup_task(pool.clone(), config.server.cleanup).await;
+    background::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
+    background::cleanup_task(pool.clone(), config.server.cleanup).await;
 
     let state = state::AppState::new(pool);
     let app = app::create_router(state);
