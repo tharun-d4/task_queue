@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, types::JsonValue};
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, sqlx::Type, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, sqlx::Type, Serialize, Deserialize)]
 #[sqlx(type_name = "job_status", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum JobStatus {

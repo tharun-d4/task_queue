@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use axum::{Router, routing::get};
 use tower::ServiceBuilder;
 use tower_http::trace::{
     DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer,
@@ -23,7 +20,7 @@ pub fn create_router(state: AppState) -> Router {
 
     Router::new()
         .route("/", get(|| async { "Hello World" }))
-        .route("/jobs", post(handlers::create_job))
+        .route("/jobs", get(handlers::list_jobs).post(handlers::create_job))
         .route("/jobs/{id}", get(handlers::get_job))
         .with_state(Arc::new(state))
         .layer(middleware)
