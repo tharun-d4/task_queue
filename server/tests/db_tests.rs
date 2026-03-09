@@ -1,14 +1,14 @@
 //use chrono::Utc;
 //use sqlx::{PgPool, types::JsonValue};
 //
-//use server::db::{models::NewJob, queries};
+//use server::db::{models::CreateJob, queries};
 //use shared::db::models::JobStatus;
 //
 //#[sqlx::test(migrations = "../migrations")]
 //async fn test_insert_job_returns_job_id(pool: PgPool) -> Result<(), sqlx::Error> {
 //    let job_id = queries::insert_job(
 //        &pool,
-//        NewJob {
+//        CreateJob {
 //            job_type: "new_job".to_string(),
 //            payload: JsonValue::String("A new job".to_string()),
 //            status: JobStatus::Pending,

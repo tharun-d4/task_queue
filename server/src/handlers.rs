@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{error::ServerError, state::AppState};
 use shared::db::{
-    models::{Job, JobStatus, NewJob},
+    models::{CreateJob, Job, JobStatus},
     queries::{get_job_by_id, insert_job},
 };
 
@@ -38,7 +38,7 @@ pub async fn create_job(
 ) -> Result<(StatusCode, Json<JobId>), ServerError> {
     let job_id = insert_job(
         &state.pool,
-        NewJob {
+        CreateJob {
             job_type: job_payload.job_type,
             payload: job_payload.payload,
             status: JobStatus::Pending,
@@ -58,9 +58,8 @@ pub async fn get_job(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Job>, ServerError> {
-    if let Some(job) = get_job_by_id(&state.pool, id).await {
-        Ok(Json(job))
-    } else {
-        Err(ServerError::NotFound("Job Not Found".to_string()))
+    match get_job_by_id(&state.pool, id).await {
+        Some(job) => Ok(Json(job)),
+        None => Err(ServerError::NotFound("Job not found".to_string())),
     }
 }

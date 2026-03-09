@@ -1,9 +1,9 @@
 use sqlx::{postgres::PgPool, query_as, query_scalar};
 use uuid::Uuid;
 
-use crate::db::models::{Job, NewJob};
+use crate::db::models::{CreateJob, Job};
 
-pub async fn insert_job(pool: &PgPool, job: NewJob) -> Result<Uuid, sqlx::Error> {
+pub async fn insert_job(pool: &PgPool, job: CreateJob) -> Result<Uuid, sqlx::Error> {
     let job_id = query_scalar(
         "INSERT INTO jobs
         (id, job_type, payload, status, priority, max_retries, created_at, run_at)

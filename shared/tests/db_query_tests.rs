@@ -3,7 +3,7 @@ use sqlx::{PgPool, types::JsonValue};
 use uuid::Uuid;
 
 use shared::db::{
-    models::{JobStatus, NewJob},
+    models::{CreateJob, JobStatus},
     queries,
 };
 
@@ -11,7 +11,7 @@ use shared::db::{
 async fn insert_job_returns_job_id(pool: PgPool) -> Result<(), sqlx::Error> {
     let job_id = queries::insert_job(
         &pool,
-        NewJob {
+        CreateJob {
             job_type: "new_job".to_string(),
             payload: JsonValue::String("A new job".to_string()),
             status: JobStatus::Pending,

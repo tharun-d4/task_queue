@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 #[derive(Debug, PartialEq, sqlx::Type, Serialize, Deserialize)]
 #[sqlx(type_name = "job_status", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum JobStatus {
     Pending,
     Running,
@@ -32,7 +33,7 @@ pub struct Job {
 }
 
 #[derive(Debug)]
-pub struct NewJob {
+pub struct CreateJob {
     pub job_type: String,
     pub payload: JsonValue,
     pub status: JobStatus,
