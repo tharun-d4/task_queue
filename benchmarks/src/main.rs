@@ -18,6 +18,17 @@ async fn main() {
         .expect("failed to spawn a server process");
     println!("Started Server (pid: {:?})", server_process.id());
 
+    let build_worker = Command::new("cargo")
+        .args(["build", "--bin", "worker"])
+        .output()
+        .expect("failed to compile worker");
+    println!("build_worker: {:?}", build_worker);
+
+    let supervisor_process = Command::new("cargo")
+        .args(["run", "--bin", "worker_supervisor"])
+        .spawn()
+        .expect("failed to start worker supervisor");
+
     let req_client = reqwest::Client::new();
 
     const TOTAL_JOBS: u32 = 1000;
@@ -60,9 +71,13 @@ async fn main() {
         TOTAL_JOBS as f64 / end.as_secs_f64()
     );
 
-    // kill the server process by sending SIGTERM
+    // kill the server, worker supervisor processes by sending SIGTERM
     Command::new("kill")
-        .args(["-TERM", &server_process.id().to_string()])
+        .args([
+            "-TERM",
+            &server_process.id().to_string(),
+            &supervisor_process.id().to_string(),
+        ])
         .output()
         .expect("Killing server process");
 }
