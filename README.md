@@ -72,3 +72,18 @@ graph TD
 - **Worker:** Rust (tokio)
 - **Database:** PostgreSQL (sqlx)
 
+## Performance
+
+**Benchmarks**
+| Metric | Result |
+| ------ | ------ |
+| API Submission | 2185 jobs/sec |
+| Email Processing | 169 jobs/sec (10 Workers) |
+| Per-worker throughput | ~17 emails/sec |
+| Average email latency | ~60ms per email |
+
+**Test Conditions:**
+- 10,000 emails to local Mailpit SMTP server
+- 10 concurrent worker processes
+- PostgreSQL connection pool: 50 connections (5 per worker)
+- Platform: Lenovo Ideapad (Intel Core i3, 8GB RAM)
