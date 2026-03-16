@@ -149,7 +149,13 @@ pub struct JobStatsResponse {
     pub by_job_type: Vec<JobStatsByJobType>,
 }
 
-pub async fn job_stats(
+pub async fn job_stats(State(state): State<Arc<AppState>>) -> Result<Json<JobStats>, ServerError> {
+    let overall = queries::get_job_stats(&state.pool).await?;
+    info!(overall = ?overall);
+    Ok(Json(overall))
+}
+
+pub async fn detailed_job_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<JobStatsResponse>, ServerError> {
     let overall = queries::get_job_stats(&state.pool).await?;
