@@ -78,10 +78,10 @@ graph TD
 **Benchmarks**
 | Metric | Result |
 | ------ | ------ |
-| API Submission | 2185 jobs/sec |
-| Email Processing | 169 jobs/sec (10 Workers) |
-| Per-worker throughput | ~17 emails/sec |
-| Average email latency | ~60ms per email |
+| API Submission | ~4,500 jobs/sec |
+| Email Processing | ~220 jobs/sec (10 Workers) |
+| Per-worker throughput | ~22 emails/sec |
+| Average email latency | ~45ms per email |
 
 **Test Conditions:**
 - 10,000 emails to local Mailpit SMTP server
