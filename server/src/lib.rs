@@ -1,3 +1,13 @@
+//! # Server
+//! A HTTP Server through which jobs are
+//! submitted, scheduled, monitored and managed
+//! in the Job Scheduler project.
+//!
+//! Jobs are submited via REST API that are stored
+//! in the database so that the worker processes
+//! that run/execute the jobs fetch them from
+//! the database table in which they are inserted.
+
 pub mod app;
 pub mod background;
 pub mod db;
@@ -9,15 +19,6 @@ use tracing::{info, instrument};
 
 use shared::{config::load_server_config, db::connection, tracing::init_tracing};
 
-/// A HTTP Server through which jobs are
-/// submitted, scheduled, monitored and managed
-/// in the Job Scheduler project.
-///
-/// Jobs are submited via REST API that are stored in the database
-/// so that the worker processes that run/execute the jobs fetch them from
-/// the database table in which they are inserted.
-///
-///
 /// fn init() is the actual fn that setups the server.
 ///
 /// The server loads its configuration from a centralized config.yaml file.
