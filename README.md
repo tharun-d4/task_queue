@@ -76,6 +76,7 @@ Open http://localhost:8025 to see the email in Mailpit's inbox.
 ## 1. Requirements
 #### Functional Requirements
 - **Job Submission:** Allow clients to submit new jobs.
+- **Job Cancellation:** Allow clients to cancel submitted jobs if they are yet to run.
 - **Job Claiming & Processing:** Workers must be able to claim the next available job and prevent other workers from processing the same job.
 - **Priority-based job execution:** High priority jobs must run first.
 - **Schedule jobs:** Allow clients to schedule jobs to run once or periodically (recurring/periodic jobs).
@@ -135,6 +136,7 @@ graph TD
 - **📊 API to query job status & statistics**
 
 ### Planned Enhancements
+- ❌ Job Cancellation
 - 🔁 Periodic / Recurring jobs
 - 🖥️ Dashboard for real-time visualization
 - 📈 Benchmarking & performance profiling
