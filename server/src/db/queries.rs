@@ -1,6 +1,9 @@
+use chrono::Utc;
 use sqlx::{postgres::PgPool, query, query_as};
+use uuid::Uuid;
 
 use crate::db::models::{JobStats, JobStatsByJobType};
+use shared::db::models::JobStatus;
 
 pub async fn recover_unfinished_lease_expired_jobs(pool: &PgPool) -> Result<u64, sqlx::Error> {
     let jobs_recovered = query!(
@@ -68,4 +71,25 @@ pub async fn get_job_stats_by_job_type(
     )
     .fetch_all(pool)
     .await
+}
+
+pub async fn cancel_job(pool: &PgPool, job_id: Uuid) -> Result<u64, sqlx::Error> {
+    let rows_affected = query(
+        "
+            UPDATE jobs
+            SET status = $1,
+            finished_at = $2
+            WHERE id = $3
+            AND status = $4
+            ",
+    )
+    .bind(JobStatus::Cancelled)
+    .bind(Utc::now())
+    .bind(job_id)
+    .bind(JobStatus::Pending)
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    Ok(rows_affected)
 }

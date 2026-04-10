@@ -11,6 +11,7 @@ pub enum JobStatus {
     Running,
     Completed,
     Failed,
+    Cancelled,
 }
 
 #[derive(Debug, PartialEq, FromRow, Serialize, Deserialize)]

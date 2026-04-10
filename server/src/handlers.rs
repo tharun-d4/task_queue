@@ -62,6 +62,22 @@ pub async fn create_job(
 }
 
 #[instrument(skip(state))]
+pub async fn cancel_job(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, ServerError> {
+    let rows_affected = queries::cancel_job(&state.pool, id).await?;
+
+    if rows_affected != 1 {
+        info!(job_id = ?id, "Job not found");
+        Err(ServerError::NotFound("Job not found".to_string()))
+    } else {
+        info!(job_id = ?id, "Job is cancelled");
+        Ok(StatusCode::NO_CONTENT)
+    }
+}
+
+#[instrument(skip(state))]
 pub async fn get_job_by_id(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,

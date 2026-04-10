@@ -20,7 +20,10 @@ pub fn create_router(state: AppState) -> Router {
 
     Router::new()
         .route("/jobs", get(handlers::list_jobs).post(handlers::create_job))
-        .route("/jobs/{id}", get(handlers::get_job_by_id))
+        .route(
+            "/jobs/{id}",
+            get(handlers::get_job_by_id).delete(handlers::cancel_job),
+        )
         .route("/jobs/stats", get(handlers::job_stats))
         .route("/jobs/stats/detailed", get(handlers::detailed_job_stats))
         .with_state(Arc::new(state))

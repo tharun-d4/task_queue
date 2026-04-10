@@ -1,4 +1,4 @@
-CREATE TYPE job_status AS ENUM ('pending', 'running', 'completed', 'failed');
+CREATE TYPE job_status AS ENUM ('pending', 'running', 'completed', 'failed', 'cancelled');
 
 CREATE TABLE jobs (
   id UUID PRIMARY KEY,
