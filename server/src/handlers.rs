@@ -8,6 +8,10 @@ use axum::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+use shared::db::{
+    models::{CreateJob, Job, JobStatus},
+    queries as shared_queries,
+};
 use sqlx::QueryBuilder;
 use tracing::{info, instrument};
 use uuid::Uuid;
@@ -19,10 +23,6 @@ use crate::{
     },
     error::ServerError,
     state::AppState,
-};
-use shared::db::{
-    models::{CreateJob, Job, JobStatus},
-    queries as shared_queries,
 };
 
 pub async fn handler_404() -> Result<(), ServerError> {

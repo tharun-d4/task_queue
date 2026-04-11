@@ -1,9 +1,8 @@
-use sqlx::PgPool;
-
 use server::db::{
     models::{JobStats, JobStatsByJobType},
     queries,
 };
+use sqlx::PgPool;
 
 #[sqlx::test(
     migrations = "../migrations",

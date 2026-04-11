@@ -10,7 +10,6 @@ use nix::{
     sys::signal::{self, Signal},
     unistd::Pid,
 };
-
 use shared::config::load_supervisor_config;
 
 fn main() {

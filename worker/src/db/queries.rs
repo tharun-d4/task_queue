@@ -1,9 +1,9 @@
 use chrono::{TimeDelta, Utc};
+use shared::db::models::{Job, JobStatus};
 use sqlx::{postgres::PgPool, query, query_as, types::JsonValue};
 use uuid::Uuid;
 
 use crate::error::WorkerError;
-use shared::db::models::{Job, JobStatus};
 
 pub async fn register(pool: &PgPool, worker_id: Uuid, pid: i32) -> Result<(), WorkerError> {
     query(

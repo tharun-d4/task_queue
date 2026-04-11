@@ -1,11 +1,10 @@
 use chrono::Utc;
-use sqlx::{PgPool, types::JsonValue};
-use uuid::Uuid;
-
 use shared::db::{
     models::{CreateJob, JobStatus},
     queries,
 };
+use sqlx::{PgPool, types::JsonValue};
+use uuid::Uuid;
 
 #[sqlx::test(migrations = "../migrations")]
 async fn insert_job_returns_job_id(pool: PgPool) -> Result<(), sqlx::Error> {

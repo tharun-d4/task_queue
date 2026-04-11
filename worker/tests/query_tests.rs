@@ -1,7 +1,6 @@
+use shared::db::{models::JobStatus, queries::get_job_by_id};
 use sqlx::postgres::PgPool;
 use uuid::Uuid;
-
-use shared::db::{models::JobStatus, queries::get_job_by_id};
 use worker::db::queries;
 
 const JOB_LEASE_DURATION: u8 = 15;

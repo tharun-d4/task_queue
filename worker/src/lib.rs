@@ -37,12 +37,12 @@ pub mod executor;
 pub mod handlers;
 pub mod heartbeat;
 
+use shared::{config::load_worker_config, db::connection, tracing::init_tracing};
 use tokio::signal::unix::{SignalKind, signal};
 use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use crate::{db::queries, error::WorkerError, handlers::email};
-use shared::{config::load_worker_config, db::connection, tracing::init_tracing};
 
 #[instrument]
 pub async fn init() -> Result<(), WorkerError> {

@@ -1,7 +1,6 @@
 use axum_test::TestServer;
-use sqlx::PgPool;
-
 use server::{app, state};
+use sqlx::PgPool;
 
 pub fn build_test_server(pool: PgPool) -> TestServer {
     let state = state::AppState::new(pool);

@@ -1,9 +1,9 @@
 use chrono::Utc;
+use shared::db::models::JobStatus;
 use sqlx::{postgres::PgPool, query, query_as};
 use uuid::Uuid;
 
 use crate::db::models::{JobStats, JobStatsByJobType};
-use shared::db::models::JobStatus;
 
 pub async fn recover_unfinished_lease_expired_jobs(pool: &PgPool) -> Result<u64, sqlx::Error> {
     let jobs_recovered = query!(

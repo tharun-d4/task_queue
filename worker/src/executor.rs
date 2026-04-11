@@ -1,10 +1,9 @@
 use lettre::{Tokio1Executor, transport::smtp::AsyncSmtpTransport};
+use shared::db::models::Job;
 use sqlx::postgres::PgPool;
 use tokio::time::Instant;
 use tracing::{error, info, instrument};
 use uuid::Uuid;
-
-use shared::db::models::Job;
 
 use crate::{
     db::queries,

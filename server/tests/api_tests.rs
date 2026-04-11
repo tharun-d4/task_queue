@@ -1,12 +1,11 @@
 use axum::http::StatusCode;
-use sqlx::PgPool;
-use uuid::Uuid;
-
 use server::{
     db::models::{JobStats, JobStatsByJobType},
     handlers::JobStatsResponse,
 };
 use shared::db::models::Job;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 mod test_server;
 

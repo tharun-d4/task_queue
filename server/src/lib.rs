@@ -15,9 +15,8 @@ pub mod error;
 pub mod handlers;
 pub mod state;
 
-use tracing::{info, instrument};
-
 use shared::{config::load_server_config, db::connection, tracing::init_tracing};
+use tracing::{info, instrument};
 
 /// fn init() is the actual fn that setups the server.
 ///
