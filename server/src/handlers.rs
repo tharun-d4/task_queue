@@ -13,7 +13,7 @@ use shared::db::{
     queries as shared_queries,
 };
 use sqlx::QueryBuilder;
-use tracing::{info, instrument};
+use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use crate::{
@@ -75,15 +75,14 @@ pub async fn cancel_job(
     let mut txn = state.pool.begin().await?;
 
     let job_status = queries::get_job_status(&mut *txn, id).await?;
-    tokio::time::sleep(std::time::Duration::from_secs(4)).await;
 
-    let error = "Cannot cancel job.";
     match job_status {
         JobStatus::Pending => {
             let rows_affected = queries::cancel_job(&mut *txn, id).await?;
 
             if rows_affected != 1 {
-                info!(job_id = ?id, error = error);
+                let error = String::from("Too late! The job started executing.");
+                error!(job_id = ?id, error = error);
 
                 Err(ServerError::BadRequest(error.into()))
             } else {
@@ -94,8 +93,8 @@ pub async fn cancel_job(
             }
         }
         others => Err(ServerError::BadRequest(format!(
-            "{} Current status: {:?}",
-            error, others
+            "Cannot cancel the job. Current status: {:?}",
+            others
         ))),
     }
 }
