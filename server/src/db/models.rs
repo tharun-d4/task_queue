@@ -7,6 +7,7 @@ pub struct JobStats {
     pub running: i64,
     pub completed: i64,
     pub failed: i64,
+    pub cancelled: i64,
 }
 
 #[derive(Debug, PartialEq, FromRow, Serialize, Deserialize)]
@@ -16,4 +17,5 @@ pub struct JobStatsByJobType {
     pub running: i64,
     pub completed: i64,
     pub failed: i64,
+    pub cancelled: i64,
 }

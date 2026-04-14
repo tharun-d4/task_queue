@@ -32,6 +32,22 @@ VALUES
   NOW() AT TIME ZONE 'UTC'
 ),
 (
+  '019c26fd-c9d5-7f85-9c10-479e6901ef85',
+  'send_webhook',
+  '{
+    "url": "https://job-scheduler.free.beeceptor.com/webhook",
+    "method": "POST",
+    "body": {
+      "event": "sample_webhook"
+    }
+  }',
+  'running',
+  2,
+  5,
+  NOW() AT TIME ZONE 'UTC',
+  NOW() AT TIME ZONE 'UTC'
+),
+(
   '019c26fd-c9d5-7f85-9c10-479e6901ef83',
   'send_webhook',
   '{

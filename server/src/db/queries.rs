@@ -46,7 +46,8 @@ pub async fn get_job_stats(pool: &PgPool) -> Result<JobStats, sqlx::Error> {
             COUNT(id) FILTER(WHERE status='pending') as pending,
             COUNT(id) FILTER(WHERE status='running') as running,
             COUNT(id) FILTER(WHERE status='completed') as completed,
-            COUNT(id) FILTER(WHERE status='failed') as failed
+            COUNT(id) FILTER(WHERE status='failed') as failed,
+            COUNT(id) FILTER(WHERE status='failed') as cancelled
         FROM jobs;
         ",
     )
@@ -64,7 +65,8 @@ pub async fn get_job_stats_by_job_type(
             COUNT(id) FILTER(WHERE status='pending') as pending,
             COUNT(id) FILTER(WHERE status='running') as running,
             COUNT(id) FILTER(WHERE status='completed') as completed,
-            COUNT(id) FILTER(WHERE status='failed') as failed
+            COUNT(id) FILTER(WHERE status='failed') as failed,
+            COUNT(id) FILTER(WHERE status='failed') as cancelled
         FROM jobs
         GROUP BY job_type;
         ",

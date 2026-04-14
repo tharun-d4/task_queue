@@ -101,9 +101,10 @@ async fn job_stats_returns_200(pool: PgPool) {
         json,
         JobStats {
             pending: 3,
-            running: 0,
+            running: 1,
             completed: 0,
             failed: 0,
+            cancelled: 0,
         },
     )
 }
@@ -124,9 +125,10 @@ async fn job_stats_detailed_returns_200(pool: PgPool) {
         JobStatsResponse {
             overall: JobStats {
                 pending: 3,
-                running: 0,
+                running: 1,
                 completed: 0,
                 failed: 0,
+                cancelled: 0,
             },
             by_job_type: vec![
                 JobStatsByJobType {
@@ -135,15 +137,43 @@ async fn job_stats_detailed_returns_200(pool: PgPool) {
                     running: 0,
                     completed: 0,
                     failed: 0,
+                    cancelled: 0,
                 },
                 JobStatsByJobType {
                     job_type: String::from("send_webhook"),
                     pending: 1,
-                    running: 0,
+                    running: 1,
                     completed: 0,
                     failed: 0,
+                    cancelled: 0,
                 }
             ]
         }
     )
+}
+
+#[sqlx::test(
+    migrations = "../migrations",
+    fixtures(path = "../../test_fixtures/", scripts("jobs"))
+)]
+async fn canceling_pending_job_returns_204(pool: PgPool) {
+    let server = test_server::build_test_server(pool);
+
+    let response = server
+        .delete("/jobs/019bfadc-28bb-781d-9d22-acf23fe50117")
+        .await;
+    response.assert_status(StatusCode::NO_CONTENT);
+}
+
+#[sqlx::test(
+    migrations = "../migrations",
+    fixtures(path = "../../test_fixtures/", scripts("jobs"))
+)]
+async fn canceling_running_job_returns_400(pool: PgPool) {
+    let server = test_server::build_test_server(pool);
+
+    let response = server
+        .delete("/jobs/019c26fd-c9d5-7f85-9c10-479e6901ef85")
+        .await;
+    response.assert_status(StatusCode::BAD_REQUEST);
 }

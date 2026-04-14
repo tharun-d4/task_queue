@@ -15,9 +15,10 @@ async fn job_stats_return_valid_stats(pool: PgPool) -> Result<(), sqlx::Error> {
         stats,
         JobStats {
             pending: 3,
-            running: 0,
+            running: 1,
             completed: 0,
             failed: 0,
+            cancelled: 0,
         }
     );
     Ok(())
@@ -39,13 +40,15 @@ async fn job_stats_by_job_type_return_valid_stats(pool: PgPool) -> Result<(), sq
                 running: 0,
                 completed: 0,
                 failed: 0,
+                cancelled: 0,
             },
             JobStatsByJobType {
                 job_type: String::from("send_webhook"),
                 pending: 1,
-                running: 0,
+                running: 1,
                 completed: 0,
                 failed: 0,
+                cancelled: 0,
             }
         ]
     );
