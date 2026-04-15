@@ -1,9 +1,7 @@
 use sqlx::postgres::PgPool;
 use tracing::{error, warn};
 
-use crate::db::queries::{
-    mark_retry_exhausted_jobs_as_failed, recover_unfinished_lease_expired_jobs,
-};
+use crate::{db::queries, helper};
 
 pub async fn lease_recovery_task(
     pool: PgPool,
@@ -16,7 +14,7 @@ pub async fn lease_recovery_task(
         loop {
             interval.tick().await;
 
-            let result = recover_unfinished_lease_expired_jobs(&pool).await;
+            let result = queries::recover_unfinished_lease_expired_jobs(&pool).await;
             match result {
                 Ok(count) => {
                     if count > 0 {
@@ -41,7 +39,7 @@ pub async fn cleanup_task(pool: PgPool, interval: u8) -> tokio::task::JoinHandle
         loop {
             interval.tick().await;
 
-            let result = mark_retry_exhausted_jobs_as_failed(&pool).await;
+            let result = queries::mark_retry_exhausted_jobs_as_failed(&pool).await;
             match result {
                 Ok(count) => {
                     if count > 0 {
@@ -55,6 +53,23 @@ pub async fn cleanup_task(pool: PgPool, interval: u8) -> tokio::task::JoinHandle
                     )
                 }
             };
+        }
+    })
+}
+
+pub async fn rescheduling_recurring_jobs_task(
+    pool: PgPool,
+    interval: u8,
+) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(interval as u64));
+
+        loop {
+            interval.tick().await;
+
+            if let Err(err) = helper::reschedule_recurring_jobs(&pool).await {
+                error!(error = ?err, "Error occurred while rescheduling recurring jobs");
+            }
         }
     })
 }

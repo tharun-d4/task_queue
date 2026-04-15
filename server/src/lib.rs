@@ -13,7 +13,9 @@ pub mod background;
 pub mod db;
 pub mod error;
 pub mod handlers;
+pub mod helper;
 pub mod state;
+pub mod utils;
 
 use shared::{config::load_server_config, db::connection, tracing::init_tracing};
 use tracing::{info, instrument};
@@ -56,6 +58,7 @@ pub async fn init() -> Result<(), error::ServerError> {
     connection::run_migrations(&pool).await?;
 
     background::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
+    background::rescheduling_recurring_jobs_task(pool.clone(), config.server.lease_recovery).await;
     background::cleanup_task(pool.clone(), config.server.cleanup).await;
 
     let state = state::AppState::new(pool);

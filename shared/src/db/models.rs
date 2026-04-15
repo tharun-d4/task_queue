@@ -36,6 +36,8 @@ pub struct Job {
     pub max_retries: i16,
     pub created_at: DateTime<Utc>,
     pub run_at: DateTime<Utc>,
+    pub parent_job_id: Option<Uuid>,
+    pub rescheduled: bool,
     pub worker_id: Option<Uuid>,
     pub lease_expires_at: Option<DateTime<Utc>>,
     pub started_at: Option<DateTime<Utc>>,
@@ -47,7 +49,6 @@ pub struct Job {
 
 #[derive(Debug)]
 pub struct CreateJob {
-    pub run_mode: RunMode,
     pub job_type: String,
     pub payload: JsonValue,
     pub cron_expression: Option<String>,
@@ -55,5 +56,18 @@ pub struct CreateJob {
     pub priority: i16,
     pub max_retries: i16,
     pub created_at: DateTime<Utc>,
+    pub run_mode: RunMode,
     pub run_at: DateTime<Utc>,
+    pub parent_job_id: Option<Uuid>,
+}
+
+#[derive(Debug, FromRow)]
+pub struct RecurringJob {
+    pub id: Uuid,
+    pub job_type: String,
+    pub payload: JsonValue,
+    pub cron_expression: String,
+    pub priority: i16,
+    pub max_retries: i16,
+    pub parent_job_id: Option<Uuid>,
 }

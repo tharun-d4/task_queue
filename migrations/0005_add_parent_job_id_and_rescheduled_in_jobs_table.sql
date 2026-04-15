@@ -1,0 +1,3 @@
+ALTER TABLE jobs
+ADD COLUMN parent_job_id UUID,
+ADD COLUMN rescheduled BOOLEAN DEFAULT FALSE;

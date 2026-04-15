@@ -1,5 +1,5 @@
 use chrono::Utc;
-use shared::db::models::JobStatus;
+use shared::db::models::{JobStatus, RecurringJob, RunMode};
 use sqlx::{Executor, Postgres, postgres::PgPool, query, query_as, query_scalar};
 use uuid::Uuid;
 
@@ -37,6 +37,60 @@ pub async fn mark_retry_exhausted_jobs_as_failed(pool: &PgPool) -> Result<u64, s
     .rows_affected();
 
     Ok(moved)
+}
+
+pub async fn get_recurring_jobs_to_reschedule<'c, E>(
+    executor: E,
+) -> Result<Vec<RecurringJob>, sqlx::Error>
+where
+    E: Executor<'c, Database = Postgres>,
+{
+    let rows: Vec<RecurringJob> = query_as(
+        "
+            SELECT
+                id,
+                job_type,
+                payload,
+                cron_expression,
+                priority,
+                max_retries,
+                parent_job_id
+            FROM jobs
+            WHERE
+                status = $1
+                AND run_mode = $2
+                AND cron_expression IS NOT NULL
+                AND rescheduled = FALSE
+        ",
+    )
+    .bind(JobStatus::Completed)
+    .bind(RunMode::Recurring)
+    .fetch_all(executor)
+    .await?;
+
+    Ok(rows)
+}
+
+pub async fn mark_recurring_jobs_as_rescheduled<'c, E>(
+    executor: E,
+    job_ids: &[Uuid],
+) -> Result<u64, sqlx::Error>
+where
+    E: Executor<'c, Database = Postgres>,
+{
+    let updated = query(
+        "
+            UPDATE jobs
+            SET rescheduled = TRUE
+            WHERE id = Any($1)
+        ",
+    )
+    .bind(job_ids)
+    .execute(executor)
+    .await?
+    .rows_affected();
+
+    Ok(updated)
 }
 
 pub async fn get_job_stats(pool: &PgPool) -> Result<JobStats, sqlx::Error> {

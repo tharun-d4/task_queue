@@ -20,6 +20,7 @@ async fn insert_job_returns_job_id(pool: PgPool) -> Result<(), sqlx::Error> {
             max_retries: 5,
             created_at: Utc::now(),
             run_at: Utc::now(),
+            parent_job_id: None,
         },
     )
     .await?;

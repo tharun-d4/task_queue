@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::sync::Arc;
 
 use axum::{
@@ -7,7 +6,6 @@ use axum::{
     http::StatusCode,
 };
 use chrono::{DateTime, Utc};
-use croner::Cron;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use shared::db::{
@@ -25,6 +23,7 @@ use crate::{
     },
     error::ServerError,
     state::AppState,
+    utils::cron_parsed_to_time,
 };
 
 pub async fn handler_404() -> Result<(), ServerError> {
@@ -62,15 +61,7 @@ pub async fn create_job(
     }
 
     if let Some(ref expr) = job_payload.cron_expression {
-        let cron = Cron::from_str(&expr).map_err(|err| {
-            error!(error = ?err);
-            ServerError::BadRequest("Invalid cron expression for a recurring job.".into())
-        })?;
-
-        run_at = cron
-            .find_next_occurrence(&run_at, true)
-            .map_err(|e| ServerError::Internal(e.to_string()))?;
-
+        run_at = cron_parsed_to_time(expr, true)?;
         run_mode = RunMode::Recurring;
     }
 
@@ -86,6 +77,7 @@ pub async fn create_job(
             max_retries: job_payload.max_retries.unwrap_or(1),
             created_at: Utc::now(),
             run_at: run_at,
+            parent_job_id: None,
         },
     )
     .await?;
