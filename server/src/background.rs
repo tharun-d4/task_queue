@@ -1,7 +1,7 @@
 use sqlx::postgres::PgPool;
 use tracing::{error, warn};
 
-use crate::{db::queries, helper};
+use crate::{db::queries, error::ServerError, helper};
 
 pub async fn lease_recovery_task(
     pool: PgPool,
@@ -67,8 +67,13 @@ pub async fn rescheduling_recurring_jobs_task(
         loop {
             interval.tick().await;
 
-            if let Err(err) = helper::reschedule_recurring_jobs(&pool).await {
-                error!(error = ?err, "Error occurred while rescheduling recurring jobs");
+            if let Err(e) = helper::reschedule_recurring_jobs(&pool).await {
+                match e {
+                    ServerError::Database(err) => {
+                        error!(error = ?err, "Error occurred while rescheduling recurring jobs");
+                    }
+                    _ => {}
+                }
             }
         }
     })
