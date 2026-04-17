@@ -14,6 +14,7 @@ pub mod db;
 pub mod error;
 pub mod handlers;
 pub mod helper;
+pub mod prometheus;
 pub mod state;
 pub mod utils;
 
@@ -57,6 +58,8 @@ pub async fn init() -> Result<(), error::ServerError> {
     let _trace_guard = init_tracing("server");
     let config = load_server_config("./config").expect("Config Error");
 
+    let (registry, metrics) = prometheus::register_metrics();
+
     let pool = connection::create_pool(config.database, config.server.db_pool_size).await?;
     connection::run_migrations(&pool).await?;
 
@@ -64,7 +67,7 @@ pub async fn init() -> Result<(), error::ServerError> {
     background::rescheduling_recurring_jobs_task(pool.clone(), config.server.lease_recovery).await;
     background::cleanup_task(pool.clone(), config.server.cleanup).await;
 
-    let state = state::AppState::new(pool);
+    let state = state::AppState::new(pool, registry, metrics);
     let app = app::create_router(state);
 
     let bind = format!("{}:{}", config.server.host, config.server.port);

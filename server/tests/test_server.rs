@@ -1,9 +1,10 @@
 use axum_test::TestServer;
-use server::{app, state};
+use server::{app, prometheus::register_metrics, state};
 use sqlx::PgPool;
 
 pub fn build_test_server(pool: PgPool) -> TestServer {
-    let state = state::AppState::new(pool);
+    let (registry, metrics) = register_metrics();
+    let state = state::AppState::new(pool, registry, metrics);
     let app = app::create_router(state);
 
     TestServer::new(app).unwrap()

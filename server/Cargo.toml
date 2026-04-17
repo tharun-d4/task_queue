@@ -8,6 +8,7 @@ default-run = "server"
 shared = { path = "../shared" }
 
 chrono = { workspace = true }
+prometheus-client = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
