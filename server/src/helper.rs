@@ -1,3 +1,5 @@
+use std::{collections::HashMap, sync::Arc};
+
 use chrono::Utc;
 use shared::db::{
     models::{CreateJob, JobStatus, RunMode},
@@ -9,10 +11,15 @@ use tracing::{error, info};
 use crate::{
     db::queries::{self, mark_recurring_jobs_as_rescheduled},
     error::ServerError,
+    prometheus::JobType,
+    state::AppState,
     utils::cron_parsed_to_time,
 };
 
-pub async fn reschedule_recurring_jobs(pool: &PgPool) -> Result<(), ServerError> {
+pub async fn reschedule_recurring_jobs(
+    pool: &PgPool,
+    state: &Arc<AppState>,
+) -> Result<(), ServerError> {
     let mut txn = pool.begin().await?;
     let jobs = queries::get_recurring_jobs_to_reschedule(&mut *txn).await?;
 
@@ -23,6 +30,7 @@ pub async fn reschedule_recurring_jobs(pool: &PgPool) -> Result<(), ServerError>
     }
 
     let mut job_ids = Vec::with_capacity(jobs.len());
+    let mut job_types_frequency = HashMap::new();
 
     let new_jobs: Vec<CreateJob> = jobs
         .into_iter()
@@ -39,6 +47,10 @@ pub async fn reschedule_recurring_jobs(pool: &PgPool) -> Result<(), ServerError>
                     error!(error = ?e);
                 }
             }
+
+            *job_types_frequency
+                .entry(job.job_type.clone())
+                .or_insert(0_u64) += 1;
 
             CreateJob {
                 job_type: job.job_type,
@@ -65,6 +77,15 @@ pub async fn reschedule_recurring_jobs(pool: &PgPool) -> Result<(), ServerError>
     );
 
     txn.commit().await?;
+    info!("job_types_frequency: {:?}", job_types_frequency);
+
+    for (job_type, frequency) in job_types_frequency {
+        state
+            .metrics
+            .cron_jobs_rescheduled
+            .get_or_create(&JobType { job_type })
+            .inc_by(frequency);
+    }
 
     Ok(())
 }

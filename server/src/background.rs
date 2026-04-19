@@ -1,7 +1,9 @@
+use std::sync::Arc;
+
 use sqlx::postgres::PgPool;
 use tracing::{error, warn};
 
-use crate::{db::queries, error::ServerError, helper};
+use crate::{db::queries, error::ServerError, helper, state::AppState};
 
 pub async fn lease_recovery_task(
     pool: PgPool,
@@ -59,15 +61,17 @@ pub async fn cleanup_task(pool: PgPool, interval: u8) -> tokio::task::JoinHandle
 
 pub async fn rescheduling_recurring_jobs_task(
     pool: PgPool,
+    state: Arc<AppState>,
     interval: u8,
 ) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
+        let state = state;
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(interval as u64));
 
         loop {
             interval.tick().await;
 
-            if let Err(e) = helper::reschedule_recurring_jobs(&pool).await {
+            if let Err(e) = helper::reschedule_recurring_jobs(&pool, &state).await {
                 match e {
                     ServerError::Database(err) => {
                         error!(error = ?err, "Error occurred while rescheduling recurring jobs");

@@ -65,11 +65,17 @@ pub async fn init() -> Result<(), error::ServerError> {
     let pool = connection::create_pool(config.database, config.server.db_pool_size).await?;
     connection::run_migrations(&pool).await?;
 
-    background::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
-    background::rescheduling_recurring_jobs_task(pool.clone(), config.server.lease_recovery).await;
-    background::cleanup_task(pool.clone(), config.server.cleanup).await;
+    let state = Arc::new(state::AppState::new(pool.clone(), registry, metrics));
 
-    let state = Arc::new(state::AppState::new(pool, registry, metrics));
+    background::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
+    background::rescheduling_recurring_jobs_task(
+        pool.clone(),
+        state.clone(),
+        config.server.lease_recovery,
+    )
+    .await;
+    background::cleanup_task(pool, config.server.cleanup).await;
+
     let app = app::create_router(state);
 
     let bind = format!("{}:{}", config.server.host, config.server.port);

@@ -21,6 +21,13 @@ services:
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
 
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasources.yml
+
   mail:
     image: docker.io/axllent/mailpit
     ports:

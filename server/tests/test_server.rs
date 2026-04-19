@@ -11,3 +11,9 @@ pub fn build_test_server(pool: PgPool) -> TestServer {
 
     TestServer::new(app).unwrap()
 }
+
+//datasources:
+//  - name: Metrics
+//    type: prometheus
+//    access: proxy
+//    url: http://prometheus:9090/

@@ -18,10 +18,18 @@ pub struct HttpLabel {
     pub path: String,
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq, EncodeLabelSet)]
+pub struct JobType {
+    pub job_type: String,
+}
+
 #[derive(Debug)]
 pub struct Metrics {
     pub http_requests: Family<HttpLabel, Counter>,
     pub http_request_duration_seconds: Family<HttpLabel, Histogram>,
+
+    pub jobs_submitted: Family<JobType, Counter>,
+    pub cron_jobs_rescheduled: Family<JobType, Counter>,
 }
 
 pub fn register_metrics() -> (Registry, Metrics) {
@@ -34,6 +42,8 @@ pub fn register_metrics() -> (Registry, Metrics) {
                 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
             ])
         }),
+        jobs_submitted: Family::default(),
+        cron_jobs_rescheduled: Family::default(),
     };
 
     registry.register(
@@ -45,6 +55,16 @@ pub fn register_metrics() -> (Registry, Metrics) {
         "http_request_duration_seconds",
         "Request duration time in seconds",
         metrics.http_request_duration_seconds.clone(),
+    );
+    registry.register(
+        "jobs_submitted",
+        "Total Jobs Submitted",
+        metrics.jobs_submitted.clone(),
+    );
+    registry.register(
+        "cron_jobs_rescheduled",
+        "Total Cron Jobs Rescheduled",
+        metrics.cron_jobs_rescheduled.clone(),
     );
     (registry, metrics)
 }

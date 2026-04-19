@@ -25,6 +25,7 @@ use crate::{
         queries,
     },
     error::ServerError,
+    prometheus::JobType,
     state::AppState,
     utils::cron_parsed_to_time,
 };
@@ -86,7 +87,7 @@ pub async fn create_job(
         &state.pool,
         CreateJob {
             run_mode: run_mode,
-            job_type: job_payload.job_type,
+            job_type: job_payload.job_type.clone(),
             payload: job_payload.payload,
             cron_expression: job_payload.cron_expression,
             status: JobStatus::Pending,
@@ -99,6 +100,14 @@ pub async fn create_job(
     )
     .await?;
     info!(%job_id, "Job Created");
+
+    state
+        .metrics
+        .jobs_submitted
+        .get_or_create(&JobType {
+            job_type: job_payload.job_type,
+        })
+        .inc();
     Ok((StatusCode::CREATED, Json(JobId { job_id })))
 }
 
