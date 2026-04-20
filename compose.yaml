@@ -24,16 +24,22 @@ services:
     ports:
       - 9090:9090
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
     depends_on:
       - push_gateway
 
-  #grafana:
-  #  image: docker.io/grafana/grafana:latest
-  #  ports:
-  #    - 3000:3000
-  #  volumes:
-  #    - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasources.yml
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dasboards:/var/lib/grafana/dashboards
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    depends_on:
+      - prometheus
 
   mail:
     image: docker.io/axllent/mailpit

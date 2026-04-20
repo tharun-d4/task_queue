@@ -14,7 +14,7 @@ use crate::{
     state::AppState,
 };
 
-#[instrument(skip(pool, state))]
+#[instrument(skip(pool, state, job))]
 pub async fn execute_job(
     pool: &PgPool,
     state: Arc<AppState>,
@@ -51,10 +51,14 @@ pub async fn execute_job(
     match result {
         Ok(res) => {
             info!("Job completed");
-            let moved_jobs = queries::mark_job_as_completed(pool, job_id, worker_id, res).await?;
-            if moved_jobs != 1 {
-                error!(moved_jobs = moved_jobs, "Failed to mark job as completed");
+            let marked_jobs = queries::mark_job_as_completed(pool, job_id, worker_id, res).await?;
+            if marked_jobs != 1 {
+                error!(marked_jobs = marked_jobs, "Failed to mark job as completed");
             } else {
+                info!(
+                    "Incrementing jobs_completed metric for job_type: {:?}",
+                    job.job_type
+                );
                 state
                     .metrics
                     .jobs_completed
@@ -77,6 +81,10 @@ pub async fn execute_job(
                 if moved_rows != 1 {
                     error!(moved_rows = moved_rows, "Failed to job as failed");
                 } else {
+                    info!(
+                        "Incrementing jobs_failed metric for job_type: {:?}",
+                        job.job_type
+                    );
                     state
                         .metrics
                         .jobs_failed
@@ -100,6 +108,10 @@ pub async fn execute_job(
                         "Failed to update job error and retry time"
                     );
                 } else {
+                    info!(
+                        "Incrementing jobs_retried metric for job_type: {:?}",
+                        job.job_type
+                    );
                     state
                         .metrics
                         .jobs_retried
@@ -115,6 +127,10 @@ pub async fn execute_job(
     let end = start.elapsed();
     info!(overall_duration_ms = end.as_millis(), "Job updated in DB");
 
+    info!(
+        "Observing job_processing_duration_seconds metric for job_type: {:?}",
+        job_type_clone
+    );
     state
         .metrics
         .job_processing_duration_seconds
