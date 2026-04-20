@@ -29,6 +29,7 @@ pub struct Metrics {
     pub http_request_duration_seconds: Family<HttpLabel, Histogram>,
 
     pub jobs_submitted: Family<JobType, Counter>,
+    pub lease_recovered_jobs: Family<JobType, Counter>,
     pub cron_jobs_rescheduled: Family<JobType, Counter>,
 }
 
@@ -43,6 +44,7 @@ pub fn register_metrics() -> (Registry, Metrics) {
             ])
         }),
         jobs_submitted: Family::default(),
+        lease_recovered_jobs: Family::default(),
         cron_jobs_rescheduled: Family::default(),
     };
 
@@ -60,6 +62,11 @@ pub fn register_metrics() -> (Registry, Metrics) {
         "jobs_submitted",
         "Total Jobs Submitted",
         metrics.jobs_submitted.clone(),
+    );
+    registry.register(
+        "lease_recovered_jobs",
+        "Total Jobs whose lease is recovered",
+        metrics.lease_recovered_jobs.clone(),
     );
     registry.register(
         "cron_jobs_rescheduled",

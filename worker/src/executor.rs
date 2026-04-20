@@ -117,7 +117,7 @@ pub async fn execute_job(
 
     state
         .metrics
-        .jobs_processing_duration_seconds
+        .job_processing_duration_seconds
         .get_or_create(&JobType {
             job_type: job_type_clone,
         })

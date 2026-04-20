@@ -17,7 +17,7 @@ pub struct Metrics {
     pub jobs_completed: Family<JobType, Counter>,
     pub jobs_failed: Family<JobType, Counter>,
     pub jobs_retried: Family<JobType, Counter>,
-    pub jobs_processing_duration_seconds: Family<JobType, Histogram>,
+    pub job_processing_duration_seconds: Family<JobType, Histogram>,
 }
 
 pub fn register_metrics() -> (Registry, Metrics) {
@@ -27,7 +27,7 @@ pub fn register_metrics() -> (Registry, Metrics) {
         jobs_completed: Family::default(),
         jobs_failed: Family::default(),
         jobs_retried: Family::default(),
-        jobs_processing_duration_seconds: Family::new_with_constructor(|| {
+        job_processing_duration_seconds: Family::new_with_constructor(|| {
             Histogram::new([
                 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
             ])
@@ -50,9 +50,9 @@ pub fn register_metrics() -> (Registry, Metrics) {
         metrics.jobs_retried.clone(),
     );
     registry.register(
-        "jobs_processing_duration_seconds",
+        "job_processing_duration_seconds",
         "Job processing duration in seconds",
-        metrics.jobs_processing_duration_seconds.clone(),
+        metrics.job_processing_duration_seconds.clone(),
     );
 
     (registry, metrics)

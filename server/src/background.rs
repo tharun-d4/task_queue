@@ -3,10 +3,11 @@ use std::sync::Arc;
 use sqlx::postgres::PgPool;
 use tracing::{error, warn};
 
-use crate::{db::queries, error::ServerError, helper, state::AppState};
+use crate::{db::queries, error::ServerError, helper, prometheus::JobType, state::AppState};
 
 pub async fn lease_recovery_task(
     pool: PgPool,
+    state: Arc<AppState>,
     recovery_interval: u8,
 ) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
@@ -16,11 +17,22 @@ pub async fn lease_recovery_task(
         loop {
             interval.tick().await;
 
-            let result = queries::recover_unfinished_lease_expired_jobs(&pool).await;
+            let result = queries::recover_lease_expired_jobs(&pool).await;
             match result {
-                Ok(count) => {
-                    if count > 0 {
-                        warn!("Jobs Recovered: {}", count);
+                Ok(jobs) => {
+                    if !jobs.is_empty() {
+                        let recovered: i64 = jobs.iter().map(|row| row.count).sum();
+                        warn!("Jobs Recovered: {}", recovered);
+
+                        for job in jobs {
+                            state
+                                .metrics
+                                .lease_recovered_jobs
+                                .get_or_create(&JobType {
+                                    job_type: job.job_type,
+                                })
+                                .inc_by(job.count as u64);
+                        }
                     }
                 }
                 Err(err) => {

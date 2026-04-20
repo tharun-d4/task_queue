@@ -67,7 +67,8 @@ pub async fn init() -> Result<(), error::ServerError> {
 
     let state = Arc::new(state::AppState::new(pool.clone(), registry, metrics));
 
-    background::lease_recovery_task(pool.clone(), config.server.lease_recovery).await;
+    background::lease_recovery_task(pool.clone(), state.clone(), config.server.lease_recovery)
+        .await;
     background::rescheduling_recurring_jobs_task(
         pool.clone(),
         state.clone(),

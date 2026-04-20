@@ -1,25 +1,36 @@
 use chrono::Utc;
 use shared::db::models::{JobStatus, RecurringJob, RunMode};
-use sqlx::{Executor, Postgres, postgres::PgPool, query, query_as, query_scalar};
+use sqlx::{Executor, Postgres, postgres::PgPool, prelude::FromRow, query, query_as, query_scalar};
 use uuid::Uuid;
 
 use crate::db::models::{JobStats, JobStatsByJobType};
 
-pub async fn recover_unfinished_lease_expired_jobs(pool: &PgPool) -> Result<u64, sqlx::Error> {
-    let jobs_recovered = query!(
+#[derive(Debug, FromRow)]
+pub struct JobTypeFrequency {
+    pub job_type: String,
+    pub count: i64,
+}
+
+pub async fn recover_lease_expired_jobs(
+    pool: &PgPool,
+) -> Result<Vec<JobTypeFrequency>, sqlx::Error> {
+    query_as(
         "
-        UPDATE jobs
-        SET status = 'pending',
-        error_message = 'lease expired or worker crashed'
-        WHERE status = 'running'
-        AND lease_expires_at < NOW()
+        WITH recovered_jobs AS (
+            UPDATE jobs
+            SET status = 'pending',
+            error_message = 'lease expired or worker crashed'
+            WHERE status = 'running'
+            AND lease_expires_at < NOW()
+            RETURNING job_type
+        )
+        SELECT job_type, COUNT(*)
+        FROM recovered_jobs
+        GROUP BY job_type;
         ",
     )
-    .execute(pool)
-    .await?
-    .rows_affected();
-
-    Ok(jobs_recovered)
+    .fetch_all(pool)
+    .await
 }
 
 pub async fn mark_retry_exhausted_jobs_as_failed(pool: &PgPool) -> Result<u64, sqlx::Error> {
