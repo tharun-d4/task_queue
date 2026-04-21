@@ -15,6 +15,7 @@
       }
     ]
   },
+  "description": "",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -938,6 +939,63 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        }
+      },
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -945,22 +1003,45 @@
         "y": 30
       },
       "id": 11,
-      "options": {},
+      "options": {
+        "annotations": {
+          "clustering": -1,
+          "multiLane": false
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
       "pluginVersion": "13.0.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "editorMode": "builder",
+          "expr": "rate(jobs_retried_total[$__rate_interval])",
+          "legendFormat": "{{job_type}}",
+          "range": true,
           "refId": "A"
         }
       ],
       "title": "Job Retry Rate",
-      "type": "__unconfigured-panel"
+      "type": "timeseries"
     }
   ],
   "preload": false,
   "refresh": "",
   "schemaVersion": 42,
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -980,6 +1061,6 @@
   "timezone": "browser",
   "title": "Job Scheduler",
   "version": 1,
-  "uid": "adbljht",
-  "id": 1632870904823808
+  "uid": "adrr9dc",
+  "id": 1967334535368704
 }
