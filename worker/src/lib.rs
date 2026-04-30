@@ -39,7 +39,7 @@ pub mod handlers;
 pub mod prometheus;
 pub mod state;
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use shared::{config::load_worker_config, db::connection, tracing::init_tracing};
 use tokio::signal::unix::{SignalKind, signal};
@@ -52,6 +52,14 @@ use crate::{
 
 #[instrument]
 pub async fn init() -> Result<(), WorkerError> {
+    let mut exit_when_no_jobs = false;
+    let args = std::env::args().collect::<Vec<String>>();
+    if let Some(s) = args.get(1)
+        && s == "exit_when_no_jobs"
+    {
+        exit_when_no_jobs = true;
+    }
+
     let _trace_guard = init_tracing("worker");
     let config = load_worker_config("./config")
         .map_err(|e| WorkerError::permanent("Failed to load worker config").set_source(e))?;
@@ -96,6 +104,8 @@ pub async fn init() -> Result<(), WorkerError> {
     let mut iterrupt_signal = signal(SignalKind::interrupt())
         .map_err(|e| WorkerError::permanent("Failed to create a SIGINT listener").set_source(e))?;
 
+    let mut job_count = 0_u32;
+    let start = Instant::now();
     loop {
         tokio::select! {
             _ = terminate_signal.recv() => {
@@ -109,11 +119,23 @@ pub async fn init() -> Result<(), WorkerError> {
             claim_result = queries::claim_job(&pool, worker_id, config.worker.lease_duration) => {
                 match claim_result {
                     Ok(Some(job)) => {
+                        job_count += 1;
                         let job_id = job.id;
-                        executor::execute_job(&pool, state.clone(), job, worker_id, job_id).await?;
+                        let state_clone = state.clone();
+                        let pool_clone = pool.clone();
+
+                        tokio::spawn(async move {
+                            if let Err(err) = executor::execute_job(pool_clone, state_clone, job, worker_id, job_id).await {
+                                error!(error = ?err, "Got an error from executor");
+                            };
+
+                        });
                     }
                     Ok(None) => {
                         // No job to run
+                        if exit_when_no_jobs {
+                            break;
+                        }
                         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
                     }
                     Err(err) => error!(error = ?err, "Claim job error"),
@@ -121,6 +143,15 @@ pub async fn init() -> Result<(), WorkerError> {
             }
         }
     }
+
+    let end = start.elapsed();
+    info!("== Processing results ==");
+    info!("Processing time: {:.2}sec", end.as_secs_f64());
+    info!(
+        "Processing Rate: {:.2} jobs/sec",
+        job_count as f64 / end.as_secs_f64()
+    );
+
     info!("Worker (ID: {:?}, PID: {}) shutting down", worker_id, pid);
     queries::update_worker_shutdown_time(&pool, worker_id).await?;
 

@@ -16,7 +16,7 @@ use crate::{
 
 #[instrument(skip(pool, state, job))]
 pub async fn execute_job(
-    pool: &PgPool,
+    pool: PgPool,
     state: Arc<AppState>,
     job: Job,
     worker_id: Uuid,
@@ -49,7 +49,7 @@ pub async fn execute_job(
 
     match result {
         Ok(res) => {
-            let marked_jobs = queries::mark_job_as_completed(pool, job_id, worker_id, res).await?;
+            let marked_jobs = queries::mark_job_as_completed(&pool, job_id, worker_id, res).await?;
             if marked_jobs != 1 {
                 error!(marked_jobs = marked_jobs, "Failed to mark job as completed");
             } else {
@@ -75,7 +75,7 @@ pub async fn execute_job(
 
             if err.is_permanent() || retries_exhausted {
                 let marked_jobs =
-                    queries::mark_job_as_failed(pool, job_id, worker_id, err.to_string()).await?;
+                    queries::mark_job_as_failed(&pool, job_id, worker_id, err.to_string()).await?;
                 if marked_jobs != 1 {
                     error!(marked_jobs = marked_jobs, "Failed to job as failed");
                 } else {
@@ -93,7 +93,7 @@ pub async fn execute_job(
                 }
             } else {
                 let updated_rows = queries::update_job_error_and_backoff_time(
-                    pool,
+                    &pool,
                     job_id,
                     worker_id,
                     err.to_string(),
